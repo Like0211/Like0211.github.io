@@ -1,0 +1,421 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>XSS练习3(xss-labs) | My Blog</title><meta name="author" content="knight"><meta name="copyright" content="knight"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="XSS练习3（xss-labs)xss10-18 level 10首先尝试 &quot; &#39; &lt;&gt; on,发现&quot; &lt;&gt;都被编码  发现这三个地方，看看能不能注入 &lt;input name&#x3D;&quot;t_link&quot;  value&#x3D;&quot;&quot; type&#x3D;&quot;hidden&quot;&gt;&lt;input name&#x3D;&amp;q">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XSS练习3(xss-labs)">
+<meta property="og:url" content="http://example.com/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/index.html">
+<meta property="og:site_name" content="My Blog">
+<meta property="og:description" content="XSS练习3（xss-labs)xss10-18 level 10首先尝试 &quot; &#39; &lt;&gt; on,发现&quot; &lt;&gt;都被编码  发现这三个地方，看看能不能注入 &lt;input name&#x3D;&quot;t_link&quot;  value&#x3D;&quot;&quot; type&#x3D;&quot;hidden&quot;&gt;&lt;input name&#x3D;&amp;q">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/knighttouxiang.jpg">
+<meta property="article:published_time" content="2026-08-14T18:40:06.000Z">
+<meta property="article:modified_time" content="2026-08-14T18:43:30.867Z">
+<meta property="article:author" content="knight">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="xss">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/knighttouxiang.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "XSS练习3(xss-labs)",
+  "url": "http://example.com/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/",
+  "image": "http://example.com/images/knighttouxiang.jpg",
+  "datePublished": "2026-08-14T18:40:06.000Z",
+  "dateModified": "2026-08-14T18:43:30.867Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "knight",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.6.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'XSS练习3(xss-labs)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/knighttouxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/IMG_20260522_193416.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">My Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">XSS练习3(xss-labs)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">XSS练习3(xss-labs)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-14T18:40:06.000Z" title="发表于 2026-08-15 02:40:06">2026-08-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-14T18:43:30.867Z" title="更新于 2026-08-15 02:43:30">2026-08-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web/">web</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="XSS练习3（xss-labs"><a href="#XSS练习3（xss-labs" class="headerlink" title="XSS练习3（xss-labs)"></a>XSS练习3（xss-labs)</h1><h2 id="xss10-18"><a href="#xss10-18" class="headerlink" title="xss10-18"></a>xss10-18</h2><p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260808201550456.png" alt="image-20260808201550456"></p>
+<h3 id="level-10"><a href="#level-10" class="headerlink" title="level 10"></a>level 10</h3><p>首先尝试 <code>&quot; &#39; &lt;&gt; on</code>,发现<code>&quot; &lt;&gt;</code>都被编码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260810235456844.png" alt="image-20260810235456844"></p>
+<p>发现这三个地方，看看能不能注入</p>
+<p><code>&lt;input name=&quot;t_link&quot;  value=&quot;&quot; type=&quot;hidden&quot;&gt;</code><br><code>&lt;input name=&quot;t_history&quot;  value=&quot;&quot; type=&quot;hidden&quot;&gt;</code><br><code>&lt;input name=&quot;t_sort&quot;  value=&quot;&quot; type=&quot;hidden&quot;&gt;</code></p>
+<p>三个地方都尝试：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://test.ctf8.com/level10.php?keyword=&lt;script&gt;alert()&lt;/script&gt;&amp;t_link=123&amp;t_history=211&amp;t_sort=007</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813024215598.png" alt="image-20260813024215598"></p>
+<p>发现<code>t_sort</code>这个获取到了传进去的参数</p>
+<p><em>这就是注入点。<code>t_sort</code> 的值直接拼进</em> <code>value</code> <em>属性，没有过滤。我需要闭合</em> <code>value=&quot;</code><em>，然后在里面写事件。</em></p>
+<p>尝试<code>t_sort=1&quot;onclick=&quot;alert(1)</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813025034356.png" alt="image-20260813025034356"></p>
+<p><strong>语法上注入成功了！</strong> <code>value</code> 被闭合，<code>onclick</code> 成了独立属性。</p>
+<p><strong>但是：</strong> 页面上找不到这个输入框，鼠标也没地方点</p>
+<p>因为<code>type=&quot;hidden&quot;</code>——元素是隐藏的。hidden 元素：</p>
+<ul>
+<li>看不见 → 鼠标移不上去 → onmouseover 不触发</li>
+<li>不能点 → onclick 不触发</li>
+</ul>
+<p><strong>所以要想办法让 hidden 元素”活过来”</strong></p>
+<h4 id="标签的-type-属性"><a href="#标签的-type-属性" class="headerlink" title="&lt;input&gt; 标签的 type 属性"></a><code>&lt;input&gt;</code> 标签的 type 属性</h4><p><strong>HTML 里 <code>&lt;input&gt;</code> 是一个”输入框”标签，但它长什么样、怎么用，由 <code>type</code> 属性决定。</strong></p>
+<p>常见的 type 值：</p>
+<table>
+<thead>
+<tr>
+<th>type 值</th>
+<th>显示效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>type=&quot;text&quot;</code></td>
+<td>普通文本框（能看见，能打字）</td>
+</tr>
+<tr>
+<td><code>type=&quot;password&quot;</code></td>
+<td>密码框（输入显示成 ••••）</td>
+</tr>
+<tr>
+<td><code>type=&quot;checkbox&quot;</code></td>
+<td>复选框</td>
+</tr>
+<tr>
+<td><code>type=&quot;radio&quot;</code></td>
+<td>单选按钮</td>
+</tr>
+<tr>
+<td><code>type=&quot;submit&quot;</code></td>
+<td>提交按钮</td>
+</tr>
+<tr>
+<td><code>type=&quot;button&quot;</code></td>
+<td>普通按钮</td>
+</tr>
+<tr>
+<td><code>type=&quot;hidden&quot;</code></td>
+<td><strong>隐藏字段（页面上看不见）</strong></td>
+</tr>
+</tbody></table>
+<p><strong>HTML 标签中，如果同一个属性写了两次，浏览器只认第一个，后面的会被忽略。</strong></p>
+<p>所以目标让HTML变成这样：</p>
+<p><code>&lt;input name=&quot;t_sort&quot; value=&quot;1&quot; type=&quot;text&quot; onclick=&quot;alert()&quot; type=&quot;hidden&quot;&gt;</code></p>
+<p>所以输入<code>&amp;t_sort=1&quot; type=&quot;text&quot; onclick=&quot;alert()</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813030957248.png" alt="image-20260813030957248"></p>
+<h3 id="level-11"><a href="#level-11" class="headerlink" title="level 11"></a>level 11</h3><p>第一次访问页面时，源码里有 4 个隐藏输入框</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813031623455.png" alt="image-20260813031623455"></p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>拆分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>t_link</code></td>
+<td>link</td>
+<td>链接</td>
+</tr>
+<tr>
+<td><code>t_history</code></td>
+<td>history</td>
+<td>历史记录</td>
+</tr>
+<tr>
+<td><code>t_sort</code></td>
+<td>sort</td>
+<td>排序参数</td>
+</tr>
+<tr>
+<td><code>t_ref</code></td>
+<td><strong>ref</strong></td>
+<td><strong>Referer 的缩写</strong> ✅</td>
+</tr>
+</tbody></table>
+<p><code>t_ref</code> 里的 <strong>ref</strong> 就是 <strong>Referer</strong> 的简写。</p>
+<h4 id="Referer-是什么？"><a href="#Referer-是什么？" class="headerlink" title="Referer 是什么？"></a>Referer 是什么？</h4><p><code>Referer</code> 是一个 HTTP 请求头，告诉服务器：<strong>“我是从哪个页面点过来&#x2F;跳过来的”</strong>。</p>
+<p><strong>既然 t_ref 的值可能来自 Referer 头，那就伪造一个 Referer 头发过去，看它会不会出现在 value 里。</strong></p>
+<p>所以这关需要在 <strong>Referer 请求头</strong>里放 payload。</p>
+<p><em><strong>Referer 就是”上一页地址”，是浏览器自动附带的一个请求头。这关的服务器把这个头的值读出来塞进了隐藏输入框 —— 而我们可以随意伪造这个头。</strong></em></p>
+<p>“伪造”其实就是在请求里<strong>自己加一行 <code>Referer</code> 文本</strong>。浏览器发请求前，你把内容改掉，就叫伪造。</p>
+<p>这里使用<strong>burp suite</strong></p>
+<p>开代理，开拦截</p>
+<p>在请求里面加上这句<code>Referer: &quot; type=&quot;text&quot; onmouseover=&quot;alert(1)&quot;</code></p>
+<p>然后放行，关拦截</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813040605563.png" alt="image-20260813040605563"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813040028332.png" alt="image-20260813040028332"></p>
+<h3 id="level-12"><a href="#level-12" class="headerlink" title="level 12"></a>level 12</h3><p>依旧先看源码，</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813041811894.png" alt="image-20260813041811894"></p>
+<p>这关的注入点变了——<strong>这次是 User-Agent 请求头</strong>，不是 Referer</p>
+<p><strong>UA &#x3D; User-Agent</strong>，中文叫”用户代理”。</p>
+<p>拆开看：</p>
+<ul>
+<li><strong>User</strong> &#x3D; 用户（你）</li>
+<li><strong>Agent</strong> &#x3D; 代理、代理人、代表</li>
+</ul>
+<p>浏览器就是你派出去访问网站的”代理人”。网站问”你是谁？”，浏览器就报上这串名号：</p>
+<blockquote>
+<p>“Mozilla&#x2F;5.0 (Windows NT 10.0…) Firefox&#x2F;153.0”</p>
+</blockquote>
+<p>意思是：我是 Firefox 浏览器，跑在 Windows 10 上。这串自我介绍就叫 <strong>User-Agent</strong>，简称 <strong>UA</strong>。</p>
+<p>所以这关的字段名叫 <code>t_ua</code>，就是提示：<strong>改 User-Agent 头</strong></p>
+<p>所以需要把请求里的 <strong>User-Agent 那一行</strong>改成：</p>
+<p><code>User-Agent: &quot; type=&quot;text&quot; onmouseover=&quot;alert(1)&quot;</code></p>
+<p>依旧使用bp</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813042443542.png" alt="image-20260813042443542"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813042515848.png" alt="image-20260813042515848"></p>
+<h3 id="level-13"><a href="#level-13" class="headerlink" title="level 13"></a>level 13</h3><p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813042938950.png" alt="image-20260813042938950"></p>
+<p>直接抓包看</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260813043156460.png" alt="image-20260813043156460"></p>
+<p>这关的注入点确定了是：<strong>Cookie 的 <code>user</code> 字段</strong></p>
+<p>还是用bp</p>
+<p>把cookie这一行改成<code>Cookie: user=&quot; type=&quot;text&quot; onmouseover=&quot;alert(1)&quot;</code></p>
+<p><img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20260813043416653.png" alt="image-20260813043416653"></p>
+<h3 id="level-15"><a href="#level-15" class="headerlink" title="level 15"></a>level 15</h3><p>查看源码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815003548353.png" alt="image-20260815003548353"></p>
+<p><code>&lt;html ng-app&gt;</code> 这一行是<strong>告诉 AngularJS：”这个页面归你管了”</strong>。（<code>ng-app</code> 是 Angular 的”开工标记”）</p>
+<p><code>&lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;</code>  引入一个叫 <strong>AngularJS</strong> 的前端框架库（v1.2.0，很老）。</p>
+<p>发现本题的关键一行 <code>&lt;span class=&quot;ng-include:1.gif&quot;&gt;&lt;/span&gt;</code></p>
+<p><code>ng-include</code> 是 AngularJS 的指令，意思是：<strong>把你给的地址当成”模板”加载进来</strong>。你 URL 里的 <code>src</code> 参数，会被原样塞进 <code>ng-include:</code> 后面。</p>
+<p>所以思路是：让 <code>ng-include</code> 去加载一个<strong>能反射我们代码的页面</strong></p>
+<h4 id="AngularJS-是什么？"><a href="#AngularJS-是什么？" class="headerlink" title="AngularJS 是什么？"></a>AngularJS 是什么？</h4><p>可以把它理解成：<strong>一个帮你”自动干活”的网页工具</strong>。</p>
+<p>普通网页是”死的”——HTML 写什么就显示什么。而 AngularJS 会扫描页面，看到某些<strong>特殊标记</strong>，就自动执行对应的动作。</p>
+<p>这些特殊标记都长一个样，叫<strong>指令（directive）</strong>，特点是以 <code>ng-</code> 开头。比如：</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ng-app</code></td>
+<td>“这个区域我接管了”</td>
+</tr>
+<tr>
+<td><code>ng-include</code></td>
+<td>“去某个网址取一段 HTML，塞到我这个位置”</td>
+</tr>
+<tr>
+<td><code>ng-bind</code></td>
+<td>“把某个变量显示出来”</td>
+</tr>
+</tbody></table>
+<p><code>&lt;span class=&quot;ng-include:1.gif&quot;&gt;&lt;/span&gt;</code>的意思就是</p>
+<p><em><strong>“Angular ，请你把* <code>1.gif</code> <em>这个地址的内容，加载进来填到</em> <code>&lt;span&gt;</code> *里。”</strong></em></p>
+<p>AngularJS 支持把指令写在 class 里，格式是：<code>ng-include:表达式</code></p>
+<p><strong>冒号后面的内容，会被 Angular 当成”表达式”去求值</strong>，求值的结果就是它要去加载的网址。</p>
+<p>这就是关键：<code>1.gif</code> 不是普通的字符串，而是<strong>代码表达式</strong>。</p>
+<ul>
+<li>如果你写 <code>&#39;level2.php&#39;</code>（带单引号）→ 这是一段”字符串”，求值结果是 <code>level2.php</code> → 正常</li>
+<li>如果你写 <code>1.gif</code>（不带引号）→ Angular 把它当 JS 代码去算：数字 <code>1</code> 的属性 <code>gif</code> → 算不出来，报错，啥也不加载</li>
+</ul>
+<p>所以默认页面里 <code>ng-include:1.gif</code> 其实是<strong>没正常工作</strong>的</p>
+<p>服务器做的事很简单：<strong>把URL 里 <code>src=</code> 后面的内容，原样填进 HTML 的 <code>ng-include:</code> 后面</strong>。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815010707462.png" alt="image-20260815010707462"></p>
+<p>访问 <code>?src=&#39;level2.php&#39;</code>，响应就变成这样，同时level2的页面也出现</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815010851145.png" alt="image-20260815010851145"></p>
+<p> level2的 <code>keyword</code> 参数会被反射进页面正文，</p>
+<p>如果 keyword 里放的是一段 HTML 标签，比如 <code>keyword=&lt;img src=x onerror=alert(1)&gt;</code></p>
+<p>这个被 level2 输出到了 <code>&lt;h2&gt;</code> 这个位置：<code>&lt;h2&gt;没有找到和&amp;lt;img src=x onerror=alert(1)&amp;gt;相关的结果.&lt;/h2&gt;</code></p>
+<p><strong>level2 在 h2 这个位置把尖括号转义了</strong>，所以 img 变成了一段纯文字，根本不是图片元素——自然就没有”加载失败”这回事。</p>
+<p>但 level2 还有第二个反射点，就是那个 <code>&lt;input&gt;</code> 的 value，<strong>这里是不转义的</strong>。所以我们用 <code>&quot;&gt;</code> 先把 value 属性闭合、把 input 标签撑破，img 就能作为真正的标签出来：</p>
+<p>所以<code>keyword = &quot;&gt;&lt;img src=x onerror=alert(1)&gt;</code>就可以</p>
+<p>最终 <code>src=&#39;level2.php?keyword=&quot;&gt;&lt;img src=x onerror=alert(1)&gt;&#39;</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815012936270.png" alt="image-20260815012936270"></p>
+<h3 id="level-16"><a href="#level-16" class="headerlink" title="level 16"></a>level 16</h3><p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815014354583.png" alt="image-20260815014354583"></p>
+<p>所以这关的结构特别简单：<strong>一个直来直去的反射点</strong>,你传什么，它就在 <code>&lt;center&gt;</code> 里显示什么</p>
+<p>上一关我们学到，反射点不能只看”能不能显示”，还要看<strong>它是不是原样显示</strong>。</p>
+<p>传 <code>test</code> 这种无害文字，当然是原样的。但如果传 <code>&lt;img src=x onerror=alert(1)&gt;</code> 呢？会不会被动手脚？</p>
+<p>尝试传一个 img 标签：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815014533619.png" alt="image-20260815014533619"></p>
+<p>发现所有空格都变成了  <code>&amp;nbsp;</code></p>
+<h4 id="nbsp-是什么"><a href="#nbsp-是什么" class="headerlink" title="&amp;nbsp  是什么?"></a><code>&amp;nbsp</code>  是什么?</h4><p> <code>&amp;nbsp</code> 是一个 <strong>HTML 实体</strong>，它的含义是”<strong>不换行空格</strong>“（Non-Breaking Space）。</p>
+<p>浏览器在<strong>显示文字</strong>时，看到 <code> &amp;nbsp</code> 会把它渲染成一个空格的样子。</p>
+<p>但是——<strong>在 HTML 标签内部</strong>，浏览器解析标签时，<strong>不把 <code> &amp;nbsp</code> 当成分隔符</strong>。它只是一个普通字符，和字母 <code>a</code>、<code>b</code> 一样。</p>
+<p><strong>由于浏览器在解析 HTML 标签时，换行符和空格是等价的。</strong></p>
+<p>所以把 payload 里的空格，全部换成换行符！</p>
+<p>在 URL 里，换行符用 <code>%0a</code> 表示</p>
+<p>所以注入<code>?keyword=&lt;img%0asrc=x%0aonerror=alert(1)&gt;</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815015347771.png" alt="image-20260815015347771"></p>
+<h3 id="level-17"><a href="#level-17" class="headerlink" title="level 17"></a>level 17</h3><p>这一关必须用谷歌看</p>
+<p>先看源码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815020348348.png" alt="image-20260815020348348"></p>
+<p>看到这个<code>src=xsf01.swf?a=b </code>，尝试修改b这里</p>
+<p><img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20260815020841124.png" alt="image-20260815020841124"></p>
+<p>尝试构造</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815021047784.png" alt="image-20260815021047784"></p>
+<p>embed 标签就多了一个 <code>onlick</code> 事件属性。</p>
+<p>**src 属性没有引号 → 浏览器靠空格判断属性值的边界 → 我们塞一个空格进去，就把 src 值”切断”了 → 空格后面我们写的 <code>onlick=alert(1)</code> 被浏览器当成了新的事件属性 **</p>
+<p>但是点击无法触发，换一个鼠标滑动事件 <code>arg02 = x onmouseover=alert(1)</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815021757452.png" alt="image-20260815021757452"></p>
+<h3 id="level-18"><a href="#level-18" class="headerlink" title="level 18"></a>level 18</h3><p>和level 17一样的</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815022018051.png" alt="image-20260815022018051"></p>
+<p>还是用这个鼠标滑动事件 <code>arg02 = x onmouseover=alert(1)</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Like0211/blog-images@main/images/image-20260815022144586.png" alt="image-20260815022144586"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">knight</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/">http://example.com/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">My Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/web/">web</a><a class="post-meta__tags" href="/tags/xss/">xss</a></div><div class="post-share"><div class="social-share" data-image="/images/knighttouxiang.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/09/XSS%E7%BB%83%E4%B9%A02(xss-labs)/" title="XSS练习2（xss-labs)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">XSS练习2（xss-labs)</div></div><div class="info-2"><div class="info-item-1">XSS练习2（xss-labs)。。。 xss20关（1-9） level 1直接尝试 name&#x3D;&lt;script&gt;alert(1)&lt;/script&gt;  level 2先试&lt;script&gt;alert(1)&lt;/script&gt;，发现直接显示出来了，没有弹窗  查看源码,发现&lt; 和 &gt; 被转成了 &amp;lt; 和 &amp;gt;    进行了HTML编码 这会导致&lt;script&gt; 标签无法在这里执行,&lt;script&gt;alert(1)&lt;/script&gt; 变成纯文字显示，不会弹窗，XSS 被防住了  再看这个地方，&lt;&gt;是正常的  所以用&quot; → 闭合 value=&quot; ​          &gt; → 闭合 &lt;input 标签 让 &lt;script&gt;alert(1)&lt;/script&gt;    变成独立标签，浏览器执行  字符:  &lt;input name=keyword value=&quot;&quot;&gt;    ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/07/XSS%E7%BB%83%E4%B9%A01(xss-labs)/" title="XSS练习1(xss-labs)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-07</div><div class="info-item-2">XSS练习1(xss-labs)</div></div><div class="info-2"><div class="info-item-1">XSS练习1(xss-labs) XSS七关example11URL：http://xss1.ctf8.com/example1.php?name=1    首先查看源码   发现：URL中 name&#x3D; 后面的值（1），原样出现在  标签内部  结论：我们在URL写什么，页面源码里就出现什么 理解&lt;script&gt;alert(1)&lt;/script&gt;12345&lt;script&gt;     告诉浏览器&quot;下面不是文字，是代码&quot;alert(1)     JavaScript命令。弹出一个显示&quot;1&quot;的提示框&lt;/script&gt;    告诉浏览器&quot;代码结束，恢复正常&lt;script&gt;代码&lt;/script&gt; → 把&quot;代码&quot;当成程序执行  然后把 name&#x3D;1 替换成 1name=&lt;script&gt;alert(1)&lt;/script&gt;    全URL： 1http://xss1.ctf8.com/example1.php?na...</div></div></div></a><a class="pagination-related" href="/2026/08/05/%E9%A6%96%E6%AC%A1%E4%BA%86%E8%A7%A3XSS/" title="首次了解XSS"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-05</div><div class="info-item-2">首次了解XSS</div></div><div class="info-2"><div class="info-item-1">初次了解XSS进入隔离区，移动并消灭逼近的感染者。每次有效命中获得 1 分，累计1000 分完成认证。 本题wp开发者工具——网络——重新加载 —— 找到JavaScript  代码表示：”如果有人喊我，并且说分数≥1000，我就去找后台要 Flag，然后弹窗给他看。“ 在控制台输入  getFlag(1000)  得到  XSS跨站脚本攻击什么是XSS?xss就是攻击者在网页里注入恶意代码，浏览器误以为是正常代码并执行。 网页把「用户输入」当成「代码」执行了，而不是当成「普通文字」显示。 只要网页把输入的东西当成「代码」而不是「普通文字」来执行，就可能存在 XSS。 XSS 本质上是一种客户端攻击。  漏洞在前端代码里，恶意代码在用户浏览器里执行，最终受害的是打开网页的用户。 XSS 的核心武器是 JavaScript，如今的网页客户端脚本几乎全是 JavaScript 攻击者只需要做一件事：想办法把一行 JavaScript 塞进网页里。 塞进去之后，浏览器会自动帮忙执行 XSS的分类反射型恶意代码在 URL 里 → 发给服务器 → 服务器没过滤，直接嵌到返回页面里 → 浏览...</div></div></div></a><a class="pagination-related" href="/2026/08/09/XSS%E7%BB%83%E4%B9%A02(xss-labs)/" title="XSS练习2（xss-labs)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">XSS练习2（xss-labs)</div></div><div class="info-2"><div class="info-item-1">XSS练习2（xss-labs)。。。 xss20关（1-9） level 1直接尝试 name&#x3D;&lt;script&gt;alert(1)&lt;/script&gt;  level 2先试&lt;script&gt;alert(1)&lt;/script&gt;，发现直接显示出来了，没有弹窗  查看源码,发现&lt; 和 &gt; 被转成了 &amp;lt; 和 &amp;gt;    进行了HTML编码 这会导致&lt;script&gt; 标签无法在这里执行,&lt;script&gt;alert(1)&lt;/script&gt; 变成纯文字显示，不会弹窗，XSS 被防住了  再看这个地方，&lt;&gt;是正常的  所以用&quot; → 闭合 value=&quot; ​          &gt; → 闭合 &lt;input 标签 让 &lt;script&gt;alert(1)&lt;/script&gt;    变成独立标签，浏览器执行  字符:  &lt;input name=keyword value=&quot;&quot;&gt;    ...</div></div></div></a><a class="pagination-related" href="/2026/07/30/ctfshow-sql%E6%B3%A8%E5%85%A5172-182/" title="ctfshow sql注入172-182"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-30</div><div class="info-item-2">ctfshow sql注入172-182</div></div><div class="info-2"><div class="info-item-1">sql注入后台登陆语句： SELECT * FROM admin WHERE username &#x3D; ‘user’ and password &#x3D;’pass’ 万能密码： ‘or ‘1’ &#x3D;’1’ # web172第1步：确认列数和回显位置 1-1&#x27; union select 1,2 --+  · -1’：让原查询查不到数据（id没有-1）+ 闭合引号· select 1,2：两个占位符· –+：注释掉后面的 limit 1· 如果页面显示 1 和 2，说明有2列，且两列都有回显 第2步：直接查flag 1-1&#x27; union select 1,(select password from ctfshow_user2 where username=&#x27;flag&#x27;) --+   解释  为什么用 -1’？  作用 说明-1 让原查询查不到数据（id从1开始，没有-1）‘ 闭合原SQL中的开头的单引号 目的：让原查询结果为空，这样 UNION 后面的结果就成了页面唯一显示的内容。  为什么子查询要用括号 ( )？  原因：S...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/knighttouxiang.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">knight</div><div class="author-info-description">Non - differentiable life</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#XSS%E7%BB%83%E4%B9%A03%EF%BC%88xss-labs"><span class="toc-number">1.</span> <span class="toc-text">XSS练习3（xss-labs)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#xss10-18"><span class="toc-number">1.1.</span> <span class="toc-text">xss10-18</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#level-10"><span class="toc-number">1.1.1.</span> <span class="toc-text">level 10</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%87%E7%AD%BE%E7%9A%84-type-%E5%B1%9E%E6%80%A7"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">&lt;input&gt; 标签的 type 属性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-11"><span class="toc-number">1.1.2.</span> <span class="toc-text">level 11</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Referer-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">Referer 是什么？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-12"><span class="toc-number">1.1.3.</span> <span class="toc-text">level 12</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-13"><span class="toc-number">1.1.4.</span> <span class="toc-text">level 13</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-15"><span class="toc-number">1.1.5.</span> <span class="toc-text">level 15</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AngularJS-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">AngularJS 是什么？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-16"><span class="toc-number">1.1.6.</span> <span class="toc-text">level 16</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#nbsp-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.1.6.1.</span> <span class="toc-text">&amp;nbsp  是什么?</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-17"><span class="toc-number">1.1.7.</span> <span class="toc-text">level 17</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#level-18"><span class="toc-number">1.1.8.</span> <span class="toc-text">level 18</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/15/XSS%E7%BB%83%E4%B9%A03-xss-labs/" title="XSS练习3(xss-labs)">XSS练习3(xss-labs)</a><time datetime="2026-08-14T18:40:06.000Z" title="发表于 2026-08-15 02:40:06">2026-08-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/09/XSS%E7%BB%83%E4%B9%A02(xss-labs)/" title="XSS练习2（xss-labs)">XSS练习2（xss-labs)</a><time datetime="2026-08-09T09:14:35.000Z" title="发表于 2026-08-09 17:14:35">2026-08-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/07/XSS%E7%BB%83%E4%B9%A01(xss-labs)/" title="XSS练习1(xss-labs)">XSS练习1(xss-labs)</a><time datetime="2026-08-06T19:36:50.000Z" title="发表于 2026-08-07 03:36:50">2026-08-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/05/%E9%A6%96%E6%AC%A1%E4%BA%86%E8%A7%A3XSS/" title="首次了解XSS">首次了解XSS</a><time datetime="2026-08-04T20:26:20.000Z" title="发表于 2026-08-05 04:26:20">2026-08-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/02/ctfshow-php%E7%89%B9%E6%80%A789-104/" title="ctfshow php特性89-104">ctfshow php特性89-104</a><time datetime="2026-08-01T16:41:58.000Z" title="发表于 2026-08-02 00:41:58">2026-08-02</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By knight</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.6.1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.6.1"></script><script src="/js/main.js?v=5.6.1"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
